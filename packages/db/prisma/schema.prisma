@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -12,20 +7,28 @@ datasource db {
   provider = "postgresql"
 }
 
-model User{
-  id        String    @id    @default(uuid())
-  username  String    @unique
-  email     String    @unique   
-  password  String    
+model User {
+  id           String     @id @default(uuid())
+  username     String     @unique
+  email        String     @unique
 
-  status    userStatus      @default(ACTIVE)
 
-  createdAt DateTime        @default(now())
-  updateAt  DateTime        @updateAt
+  passwordHash String
 
-  orders    order[]
-  account   Account?
+
+  status       UserStatus @default(ACTIVE)
+
+  createdAt    DateTime   @default(now())
+
+
+  updatedAt    DateTime   @updatedAt
+
+
+  orders       Order[]
+
+  account      Account?
 }
+
 
 enum UserStatus {
   ACTIVE
@@ -35,44 +38,62 @@ enum UserStatus {
 }
 
 model Account {
-  id        String    @id    @default(uuid())
+  id        String   @id @default(uuid())
 
-  userId    String
-  id         id  @relation(fileds:[userId], refferencce:[id])
+  userId    String   @unique
 
-  status    userStatus    @default(ACTIVE)
+  user      User     @relation(
+    fields: [userId],
+    references: [id]
+  )
 
-  createdAt DateTime        @default(now())
-  updateAt  DateTime        @updateAt    
+  status    AccountStatus @default(ACTIVE)
 
+  balances  Balance[]
+
+  orders    Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
 }
 
 
 model Asset {
-  id        String    @id    @default(uuid())
+  id        String      @id @default(uuid())
 
-  symbol    String    @unique
-  name      String      
-  type      AssesType
-  decimal   Int
-  status    AssetStatus       @default(ACTIVE)
-
-  balence   Balance[]
-  baseMarkets     Market[]       @relation("BaseAsset")
-  quoteMarkets    Market[]       @relation("QuoteAsset")
+  symbol    String      @unique
+  name      String
 
 
-  createdAt DateTime        @default(now())
-  updateAt  DateTime        @updateAt    
+  type      AssetType
 
-  
+  decimals  Int
+
+  status    AssetStatus  @default(ACTIVE)
+
+  balances      Balance[]
+
+  baseMarkets   Market[] @relation("BaseAsset")
+  quoteMarkets  Market[] @relation("QuoteAsset")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-enum AssesType {
+
+enum AssetType {
   CRYPTO
   STABLECOIN
   FIAT
 }
+
 
 enum AssetStatus {
   ACTIVE
@@ -82,61 +103,127 @@ enum AssetStatus {
 
 
 model Market {
-  id          String     @id      @default(uuid())
-  symbol      String     @unique
-  baseAssetId 
-  quoteAssetId 
-  status      MarketStatus[]
+  id           String       @id @default(uuid())
 
-  createdAt DateTime        @default(now())
-  updateAt  DateTime        @updateAt  
+  symbol       String       @unique
 
+
+
+  baseAssetId  String
+
+  baseAsset    Asset @relation(
+    "BaseAsset",
+    fields: [baseAssetId],
+    references: [id]
+  )
+
+
+  quoteAssetId String
+
+  quoteAsset   Asset @relation(
+    "QuoteAsset",
+    fields: [quoteAssetId],
+    references: [id]
+  )
+
+  status       MarketStatus @default(ACTIVE)
+
+  orders       Order[]
+  trades       Trade[]
+
+  config       MarketConfig?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
-enum  MarketStatus {
+
+enum MarketStatus {
   ACTIVE
   SUSPENDED
   DEPRECATED
 }
 
-model MarketConfig  {
-  id        String    @id    @default(uuid())
 
-  marketId    String
-  id         id  @relation(fileds:[marketId], refferencce:[id])
+model MarketConfig {
+  id                String   @id @default(uuid())
 
+  marketId          String   @unique
 
+  market            Market   @relation(
+    fields: [marketId],
+    references: [id]
+  )
+
+  minOrderQuantity  Decimal
+  maxOrderQuantity  Decimal
+  minNotional       Decimal
+
+  pricePrecision    Int
+  quantityPrecision Int
+
+  makerFeeRate      Decimal
+  takerFeeRate      Decimal
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
+
 
 model Order {
-  id        String    @id    @default(uuid())
+  id             String   @id @default(uuid())
 
-  userId    String
-  id         id  @relation(fileds:[userId], refferencce:[id])
+  userId         String
 
-  accountId String       
-  id         id  @relation(fileds:[accountId], refferencce:[id])
-  marketId String       
-  id         id  @relation(fileds:[marketId], refferencce:[id])
+  user           User     @relation(
+    fields: [userId],
+    references: [id]
+  )
 
-  type      OrderType[]
+  accountId      String
 
-  side      OrderSide[]
+  account        Account  @relation(
+    fields: [accountId],
+    references: [id]
+  )
 
-  price     Float
+  marketId       String
 
-  quantity  Float
+  market         Market   @relation(
+    fields: [marketId],
+    references: [id]
+  )
 
-  filledQuantity      Float
 
-  status        OrderStatus[]
 
-  timeInForce       OrderTimeInForce[]
+  type           OrderType
 
-  createdAt DateTime        @default(now())
-  updateAt  DateTime        @updateAt
-  cancelledAt  DateTime        @updateAt(now())   
+  side           OrderSide
+
+  price          Decimal?
+
+  quantity       Decimal
+
+  filledQuantity Decimal @default(0)
+
+
+  status         OrderStatus @default(PENDING)
+
+  timeInForce    OrderTimeInForce @default(GTC)
+
+  fills          Fill[]
+
+
+  makerTrades    Trade[] @relation("MakerOrder")
+  takerTrades    Trade[] @relation("TakerOrder")
+
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  cancelledAt    DateTime?
 }
+
 
 enum OrderType {
   LIMIT
@@ -145,20 +232,22 @@ enum OrderType {
   STOP_LIMIT
 }
 
+
 enum OrderSide {
   BUY
   SELL
 }
+
 
 enum OrderStatus {
   PENDING
   OPEN
   PARTIALLY_FILLED
   FILLED
-  FILLED
   CANCELLED
   REJECTED
 }
+
 
 enum OrderTimeInForce {
   GTC
@@ -166,180 +255,263 @@ enum OrderTimeInForce {
   FOK
 }
 
-
-
 model Balance {
-  id        String    @id    @default(uuid())
+  id          String   @id @default(uuid())
+
+  accountId   String
+
+  account     Account  @relation(
+    fields: [accountId],
+    references: [id]
+  )
+
+
+  assetId     String
+
+  asset       Asset    @relation(
+    fields: [assetId],
+    references: [id]
+  )
+
+  available  Decimal @default(0)
+  locked     Decimal @default(0)
+
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([accountId, assetId])
+}
+
+
+model Trade {
+  id             String   @id @default(uuid())
+
+
+  marketId       String
+
+  market         Market   @relation(
+    fields: [marketId],
+    references: [id]
+  )
+
+  makerOrderId   String
+
+  makerOrder     Order @relation(
+    "MakerOrder",
+    fields: [makerOrderId],
+    references: [id]
+  )
+
+
+  takerOrderId   String
+
+  takerOrder     Order @relation(
+    "TakerOrder",
+    fields: [takerOrderId],
+    references: [id]
+  )
+
+
+  price          Decimal
+  quantity       Decimal
+
+  sequenceNumber Int
+
+  fills          Fill[]
+
+  createdAt      DateTime @default(now())
+}
+
+
+model Fill {
+  id        String   @id @default(uuid())
+
+
+  tradeId   String
+
+  trade     Trade    @relation(
+    fields: [tradeId],
+    references: [id]
+  )
+
+
+  orderId   String
+
+  order     Order    @relation(
+    fields: [orderId],
+    references: [id]
+  )
+
 
   userId    String
-  id         id  @relation(fileds:[userId], refferencce:[id])
 
-  accountId String       
-  id         id  @relation(fileds:[accountId], refferencce:[id])
-
-  assetId String       
-  id         id  @relation(fileds:[assetId], refferencce:[id])
-
-  available   Float
-
-  locked   
-
-  createdAt DateTime        @default(now())
-  updateAt  DateTime        @updateAt  
+  user      User     @relation(
+    fields: [userId],
+    references: [id]
+  )
 
 
+  quantity  Decimal
+  price     Decimal
+
+  role      FillRole
+
+  createdAt DateTime @default(now())
 }
 
 
-
-model trades {
-    id        String    @id    @default(uuid())
-
-    marketId  String
-    id          id @relation(fileds:[marketId], refferencce[id])
-    
-    makerOrderId  String
-    id          id @relation(fileds:[makerOrderId], refferencce[id])
-
-    takerOrderId  String
-    id          id @relation(fileds:[takerOrderId], refferencce[id])
-
-    price       Int
-
-    quantity    Float
-
-    createdAt DateTime          @default(now())
-
-    sequenceNumber  Int
-
+enum FillRole {
+  MAKER
+  TAKER
 }
-
-model fills {
-  id        String    @id    @default(uuid())
-
-  tradeId String
-  id          id @relation(fileds:[tradeId], refferencce[id])
-
-  orderId String
-  id          id @relation(fileds:[orderId], refferencce[id])
-
-  userId String
-  id          id @relation(fileds:[userId], refferencce[id])
-
-  quantity
-
-  price Float
-
-  role 
-
-  feeId String
-  id          id @relation(fileds:[feeId], refferencce[id])
-
-  createdAt DateTime          @default(now())
-  
-}
-
-
 
 
 model Ledger {
-  id        String    @id    @default(uuid())
-
-  accountId String
-  id          id @relation(fileds:[accountId], refferencce[id])
-
-  assetId String
-  id          id @relation(fileds:[assetId], refferencce[id])
-
-  amount      Int
-
-  type     LeagerType[]
-
-  referenceId  
-
-  balanceBefore
-
-  balanceAfter
-  
-  createdAt DateTime          @default(now())
-
-  metadata
+  id            String     @id @default(uuid())
 
 
+  accountId     String
+
+  account       Account    @relation(
+    fields: [accountId],
+    references: [id]
+  )
+
+
+  assetId       String
+
+  asset         Asset      @relation(
+    fields: [assetId],
+    references: [id]
+  )
+
+
+  amount        Decimal
+
+  type          LedgerType
+
+  referenceId   String?
+
+  balanceBefore Decimal
+  balanceAfter  Decimal
+
+  createdAt     DateTime   @default(now())
+
+  metadata      Json?
 }
 
-enum LeagerType {
-    DEPOSIT
-    WITHDRAWAL
-    TRADE
-    FEE
-    TRANSFER
-    LOCK
-    UNLOCK
+
+enum LedgerType {
+  DEPOSIT
+  WITHDRAWAL
+  TRADE
+  FEE
+  TRANSFER
+  LOCK
+  UNLOCK
 }
+
 model Deposit {
-  id        String    @id    @default(uuid())
-  userId    String
-  id         id  @relation(fileds:[userId], refferencce:[id])
+  id              String   @id @default(uuid())
 
-  accountId String
-  id          id @relation(fileds:[accountId], refferencce[id])
 
-  assetId String
-  id          id @relation(fileds:[assetId], refferencce[id])
+  userId          String
 
-  amount      Int
+  user            User     @relation(
+    fields: [userId],
+    references: [id]
+  )
 
-  status    DepositStatus[]
 
-  transactionHash 
+  accountId       String
 
-  createdAt DateTime          @default(now())
-  confirmedAt DateTime        @default(now())
+  account         Account  @relation(
+    fields: [accountId],
+    references: [id]
+  )
 
-  metadata 
 
+  assetId         String
+
+  asset           Asset    @relation(
+    fields: [assetId],
+    references: [id]
+  )
+
+
+  amount          Decimal
+
+  status          DepositStatus @default(PENDING)
+
+  transactionHash String?
+
+
+  createdAt       DateTime @default(now())
+
+  confirmedAt     DateTime?
+
+  metadata        Json?
 }
+
 
 enum DepositStatus {
-  COMPLETED 
-  PENDING 
+  COMPLETED
+  PENDING
   PROCESSING
 }
 
+model Withdrawal {
+  id              String   @id @default(uuid())
 
 
-model Withdrawals {
-  id        String    @id    @default(uuid())
+  userId          String
 
-  userId    String
-  id         id  @relation(fileds:[userId], refferencce:[id])
+  user            User     @relation(
+    fields: [userId],
+    references: [id]
+  )
 
-  accountId String
-  id          id @relation(fileds:[accountId], refferencce[id])
 
-  assetId String
-  id          id @relation(fileds:[assetId], refferencce[id])
+  accountId       String
 
-  amount      Int
+  account         Account  @relation(
+    fields: [accountId],
+    references: [id]
+  )
 
-  fee         Int
 
-  destination
+  assetId         String
 
-  status      WithdrawalsStatus[]
+  asset           Asset    @relation(
+    fields: [assetId],
+    references: [id]
+  )
 
-  transactionHash  
 
-  createdAt DateTime          @default(now())
-  processedAt DateTime        @default(now())
+  amount          Decimal
 
-  metadata   
+  fee             Decimal @default(0)
 
+  destination     String
+
+
+  status          WithdrawalStatus @default(PENDING)
+
+
+  transactionHash String?
+
+
+  createdAt       DateTime @default(now())
+
+  processedAt     DateTime?
+
+  metadata        Json?
 }
 
-enum WithdrawalsStatus {
-  COMPLETED 
-  PENDING 
+
+enum WithdrawalStatus {
+  COMPLETED
+  PENDING
   PROCESSING
 }
