@@ -12,4 +12,315 @@ datasource db {
   provider = "postgresql"
 }
 
+model User{
+  id        String    @id    @default(uuid())
+  username  String    @unique
+  email     String    @unique   
+  password  String    
 
+  status    userStatus      @default(ACTIVE)
+
+  createdAt DateTime        @default(now())
+  updateAt  DateTime        @updateAt
+
+  orders    order[]
+  account   Account?
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  PENDING
+}
+
+model Account {
+  id        String    @id    @default(uuid())
+
+  userId    String
+  id         id  @relation(fileds:[userId], refferencce:[id])
+
+  status    userStatus    @default(ACTIVE)
+
+  createdAt DateTime        @default(now())
+  updateAt  DateTime        @updateAt    
+
+}
+
+
+model Asset {
+  id        String    @id    @default(uuid())
+
+  symbol    String    @unique
+  name      String      
+  type      AssesType
+  decimal   Int
+  status    AssetStatus       @default(ACTIVE)
+
+  balence   Balance[]
+  baseMarkets     Market[]       @relation("BaseAsset")
+  quoteMarkets    Market[]       @relation("QuoteAsset")
+
+
+  createdAt DateTime        @default(now())
+  updateAt  DateTime        @updateAt    
+
+  
+}
+
+enum AssesType {
+  CRYPTO
+  STABLECOIN
+  FIAT
+}
+
+enum AssetStatus {
+  ACTIVE
+  SUSPENDED
+  DEPRECATED
+}
+
+
+model Market {
+  id          String     @id      @default(uuid())
+  symbol      String     @unique
+  baseAssetId 
+  quoteAssetId 
+  status      MarketStatus[]
+
+  createdAt DateTime        @default(now())
+  updateAt  DateTime        @updateAt  
+
+}
+
+enum  MarketStatus {
+  ACTIVE
+  SUSPENDED
+  DEPRECATED
+}
+
+model MarketConfig  {
+
+}
+
+model Order {
+  id        String    @id    @default(uuid())
+
+  userId    String
+  id         id  @relation(fileds:[userId], refferencce:[id])
+
+  accountId String       
+  id         id  @relation(fileds:[accountId], refferencce:[id])
+  marketId String       
+  id         id  @relation(fileds:[marketId], refferencce:[id])
+
+  type      OrderType[]
+
+  side      OrderSide[]
+
+  price     Float
+
+  quantity  Float
+
+  filledQuantity      Float
+
+  status        OrderStatus[]
+
+  timeInForce       OrderTimeInForce[]
+
+  createdAt DateTime        @default(now())
+  updateAt  DateTime        @updateAt
+  cancelledAt  DateTime        @updateAt(now())   
+
+
+
+}
+
+
+enum OrderType {
+  LIMIT
+  MARKET
+  STOP_MARKET
+  STOP_LIMIT
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderStatus {
+  PENDING
+  OPEN
+  PARTIALLY_FILLED
+  FILLED
+  FILLED
+  CANCELLED
+  REJECTED
+}
+
+enum OrderTimeInForce {
+  GTC
+  IOC
+  FOK
+}
+
+
+
+model Balance {
+  id        String    @id    @default(uuid())
+
+  userId    String
+  id         id  @relation(fileds:[userId], refferencce:[id])
+
+  accountId String       
+  id         id  @relation(fileds:[accountId], refferencce:[id])
+
+  assetId String       
+  id         id  @relation(fileds:[assetId], refferencce:[id])
+
+  available   Float
+
+  locked   
+
+  createdAt DateTime        @default(now())
+  updateAt  DateTime        @updateAt  
+
+
+}
+
+
+
+model trades {
+    id        String    @id    @default(uuid())
+
+    marketId  String
+    id          id @relation(fileds:[marketId], refferencce[id])
+    
+    makerOrderId  String
+    id          id @relation(fileds:[makerOrderId], refferencce[id])
+
+    takerOrderId  String
+    id          id @relation(fileds:[takerOrderId], refferencce[id])
+
+    price       Int
+
+    quantity    Float
+
+    createdAt DateTime          @default(now())
+
+    sequenceNumber  Int
+
+}
+
+model fills {
+
+}
+
+
+
+model fees {
+
+}
+
+model Ledger {
+  id        String    @id    @default(uuid())
+
+  accountId String
+  id          id @relation(fileds:[accountId], refferencce[id])
+
+  assetId String
+  id          id @relation(fileds:[assetId], refferencce[id])
+
+  amount      Int
+
+  type     LeagerType[]
+
+  referenceId  
+
+  balanceBefore
+
+  balanceAfter
+  
+  createdAt DateTime          @default(now())
+
+  metadata
+
+
+}
+
+enum LeagerType {
+    DEPOSIT
+    WITHDRAWAL
+    TRADE
+    FEE
+    TRANSFER
+    LOCK
+    UNLOCK
+}
+model Deposit {
+  id        String    @id    @default(uuid())
+  userId    String
+  id         id  @relation(fileds:[userId], refferencce:[id])
+
+  accountId String
+  id          id @relation(fileds:[accountId], refferencce[id])
+
+  assetId String
+  id          id @relation(fileds:[assetId], refferencce[id])
+
+  amount      Int
+
+  status    DepositStatus[]
+
+  transactionHash 
+
+  createdAt DateTime          @default(now())
+  confirmedAt DateTime        @default(now())
+
+  metadata 
+
+}
+
+enum DepositStatus {
+  COMPLETED 
+  PENDING 
+  PROCESSING
+}
+
+
+
+model Withdrawals {
+  id        String    @id    @default(uuid())
+
+  userId    String
+  id         id  @relation(fileds:[userId], refferencce:[id])
+
+  accountId String
+  id          id @relation(fileds:[accountId], refferencce[id])
+
+  assetId String
+  id          id @relation(fileds:[assetId], refferencce[id])
+
+  amount      Int
+
+  fee         Int
+
+  destination
+
+  status      WithdrawalsStatus[]
+
+  transactionHash  
+
+  createdAt DateTime          @default(now())
+  processedAt DateTime        @default(now())
+
+  metadata   
+
+}
+
+enum WithdrawalsStatus {
+  COMPLETED 
+  PENDING 
+  PROCESSING
+}
