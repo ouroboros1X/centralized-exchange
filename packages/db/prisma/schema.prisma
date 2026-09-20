@@ -100,6 +100,11 @@ enum  MarketStatus {
 }
 
 model MarketConfig  {
+  id        String    @id    @default(uuid())
+
+  marketId    String
+  id         id  @relation(fileds:[marketId], refferencce:[id])
+
 
 }
 
@@ -131,11 +136,7 @@ model Order {
   createdAt DateTime        @default(now())
   updateAt  DateTime        @updateAt
   cancelledAt  DateTime        @updateAt(now())   
-
-
-
 }
-
 
 enum OrderType {
   LIMIT
@@ -214,14 +215,32 @@ model trades {
 }
 
 model fills {
+  id        String    @id    @default(uuid())
 
+  tradeId String
+  id          id @relation(fileds:[tradeId], refferencce[id])
+
+  orderId String
+  id          id @relation(fileds:[orderId], refferencce[id])
+
+  userId String
+  id          id @relation(fileds:[userId], refferencce[id])
+
+  quantity
+
+  price Float
+
+  role 
+
+  feeId String
+  id          id @relation(fileds:[feeId], refferencce[id])
+
+  createdAt DateTime          @default(now())
+  
 }
 
 
 
-model fees {
-
-}
 
 model Ledger {
   id        String    @id    @default(uuid())
