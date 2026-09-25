@@ -31,4 +31,4 @@ const getMarketDetailsBySymbol = (req:Request, res:Response)=>{
 export {
   getMarketDetails,
   getMarketDetailsBySymbol
-};
+};  
