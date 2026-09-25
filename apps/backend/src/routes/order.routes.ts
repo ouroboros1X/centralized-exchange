@@ -1,7 +1,4 @@
-// post 
-// get 
-// get :id 
-// delete :id 
+
 
 
 import express from "express";
