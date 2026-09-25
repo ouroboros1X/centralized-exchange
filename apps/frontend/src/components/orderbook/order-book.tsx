@@ -16,7 +16,7 @@ import {
   marketVarsClassName,
   mulberry32,
   usePrefersReducedMotion,
-} from './chart-engine';
+} from '../charts/chart-engine';
 
 export const SOL_LADDER = generateOrderBook({ mid: 245.85, seed: 90_210, levels: 9, depth: 820 });
 export const ETH_LADDER = generateOrderBook({
