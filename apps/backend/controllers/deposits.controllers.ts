@@ -2,7 +2,7 @@
 import type{Request , Response} from "express";
 
 
-const  = (req: Request, res: Response) => {
+const depositeUser = (req: Request, res: Response) => {
     try {
         res.status(200).json({
             msg: "this is the users trade details"
@@ -14,7 +14,7 @@ const  = (req: Request, res: Response) => {
     }
 };
 
-const  = (req:Request, res:Response)=>{
+const  depositeUserupdated = (req:Request, res:Response)=>{
   try{
     res.status(200).json({
       msg: "this is the user trade details by symbol"
@@ -29,6 +29,6 @@ const  = (req:Request, res:Response)=>{
 
 
 export {
-  ,
-  
+  depositeUser,
+  depositeUserupdated
 };  
