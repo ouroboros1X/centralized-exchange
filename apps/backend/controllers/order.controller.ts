@@ -24,4 +24,9 @@ const deleteOrder  = (req: Request, res:Response) => {
   res.status(200).json ({msg:"testing ok"});
 };
 
-export { orderDetails };
+export { 
+  orderDetails,
+  orderUser,
+  orderByIdUser,
+  deleteOrder 
+};

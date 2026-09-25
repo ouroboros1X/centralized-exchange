@@ -7,8 +7,11 @@
 import express from "express";
 const router = express.Router();
 import { 
-  orderDetails
-  
+  orderDetails,
+  orderUser,
+  orderByIdUser,
+  deleteOrder
+
  } from "../../controllers/order.controller";
 
 router.route("/orderdetails").get(orderDetails);
