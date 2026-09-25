@@ -11,12 +11,12 @@ import {
 
  } from "../../controllers/order.controller";
 
-router.route("/orderdetails").get(orderDetails);
+router.route("/orderdetails").post(orderDetails);
 
 router.route("/order").get(orderUser);
 
-router.route("/order/:id").post(orderByIdUser);
+router.route("/order/:id").get(orderByIdUser);
 
-router.route("/deleteOrder/:id").post(deleteOrder);
+router.route("/deleteOrder/:id").delete(deleteOrder);
 
 export default router;

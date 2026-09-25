@@ -8,8 +8,8 @@ import {
 } from "../../controllers/market.controller"
 
 
-router.route("/marketDetails").post(getMarketDetails);
+router.route("/marketDetails").get(getMarketDetails);
 
-router.route("/marketDetails/:symbol").post(getMarketDetailsBySymbol);
+router.route("/marketDetails/:symbol").get(getMarketDetailsBySymbol);
 
 export default router;

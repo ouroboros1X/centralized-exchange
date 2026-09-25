@@ -7,8 +7,8 @@ import {
 } from "../../controllers/trade.controller"
 
 
-router.route("/tradeDeails").post(userTrade);
+router.route("/tradeDeails").get(userTrade);
 
-router.route("/TradeDetailsById").post(userTradeById);
+router.route("/TradeDetailsById").get(userTradeById);
 
 export default router;
