@@ -16,6 +16,7 @@
     "cn": "^0.3.0",
     "framer-motion": "^13.4.0",
     "lucide-react": "^1.47.0",
+    "motion": "^13.4.4",
     "react": "^19",
     "react-dom": "^19",
     "recharts": "^3.10.1",
